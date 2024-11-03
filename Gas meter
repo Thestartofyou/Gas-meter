@@ -1,0 +1,90 @@
+import csv
+import datetime
+
+# Define the file where readings will be stored
+FILENAME = 'gas_meter_readings.csv'
+
+# Initialize the file with headers if it doesn't exist
+def initialize_file():
+    try:
+        with open(FILENAME, mode='x', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(['Date', 'Meter Reading (cubic meters)'])
+            print("File initialized with headers.")
+    except FileExistsError:
+        print("File already exists. Proceeding...")
+
+# Add a new meter reading
+def add_reading():
+    reading = input("Enter the meter reading (in cubic meters): ")
+    date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    
+    with open(FILENAME, mode='a', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow([date, reading])
+        print(f"Reading added: {reading} cubic meters on {date}")
+
+# View all readings
+def view_readings():
+    try:
+        with open(FILENAME, mode='r') as file:
+            reader = csv.reader(file)
+            for row in reader:
+                print(row)
+    except FileNotFoundError:
+        print("No readings found. Please initialize the file first.")
+
+# Calculate average daily consumption
+def calculate_average_consumption():
+    readings = []
+    dates = []
+    
+    try:
+        with open(FILENAME, mode='r') as file:
+            reader = csv.reader(file)
+            next(reader)  # Skip header
+            for row in reader:
+                dates.append(datetime.datetime.strptime(row[0], '%Y-%m-%d %H:%M:%S'))
+                readings.append(float(row[1]))
+            
+        if len(readings) < 2:
+            print("Not enough readings to calculate consumption.")
+            return
+        
+        total_usage = readings[-1] - readings[0]
+        days = (dates[-1] - dates[0]).days
+        average_daily_consumption = total_usage / days if days > 0 else 0
+        
+        print(f"Average daily consumption: {average_daily_consumption:.2f} cubic meters")
+    except FileNotFoundError:
+        print("No readings found. Please initialize the file first.")
+    except ValueError:
+        print("Error in data format. Check readings file.")
+
+# Main menu
+def main():
+    initialize_file()
+    
+    while True:
+        print("\nGas Meter Tracking System")
+        print("1. Add a new meter reading")
+        print("2. View all meter readings")
+        print("3. Calculate average daily consumption")
+        print("4. Exit")
+        
+        choice = input("Enter your choice: ")
+        
+        if choice == '1':
+            add_reading()
+        elif choice == '2':
+            view_readings()
+        elif choice == '3':
+            calculate_average_consumption()
+        elif choice == '4':
+            print("Exiting the program.")
+            break
+        else:
+            print("Invalid choice. Please try again.")
+
+if __name__ == "__main__":
+    main()
